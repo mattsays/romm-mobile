@@ -36,7 +36,7 @@ yarn-error.*
 # typescript
 *.tsbuildinfo
 
-app-example
+credentials.json
 
 android/
 ios/
