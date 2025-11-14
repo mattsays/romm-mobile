@@ -9,6 +9,7 @@ import {
   FlatList,
   Image,
   Modal,
+  Pressable,
   Platform as RNPlatform,
   ScrollView,
   StyleSheet,
@@ -64,6 +65,107 @@ const EJS_SUPPORTED_PLATFORMS: string[] = [
   "wonderswan",
   "wonderswan-color",
 ];
+
+// TV focusable Play Button component
+function PlayButton({
+  rom,
+  handleOpenWith,
+}: {
+  rom: Rom;
+  handleOpenWith: (rom: Rom) => void;
+}) {
+  const [focused, setFocused] = useState(false);
+  const { t } = useTranslation();
+
+  return (
+    <Pressable
+      style={[
+        styles.downloadButton,
+        styles.openButton,
+        styles.playButtonHorizontal,
+        focused ? styles.buttonFocused : null,
+      ]}
+      onPress={() => handleOpenWith(rom)}
+      onFocus={() => setFocused(true)}
+      onBlur={() => setFocused(false)}
+      hasTVPreferredFocus={false}
+      isTVSelectable={true}
+      focusable={true}
+      accessible={true}
+    >
+      <Ionicons name="play-outline" size={20} color="#fff" />
+      <Text style={styles.downloadButtonText}>{t("playOnEmuJS")}</Text>
+    </Pressable>
+  );
+}
+
+// TV focusable Download Button component
+function DownloadButtonComponent({
+  rom,
+  handleDownload,
+  isCurrentlyDownloading,
+  downloadProgress,
+  currentDownload,
+  t,
+}: {
+  rom: Rom;
+  handleDownload: () => void;
+  isCurrentlyDownloading: boolean;
+  downloadProgress: number;
+  currentDownload: any;
+  t: any;
+}) {
+  const [focused, setFocused] = useState(false);
+
+  return (
+    <Pressable
+      style={[
+        styles.downloadButton,
+        styles.downloadButtonHorizontal,
+        isCurrentlyDownloading && styles.downloadingButton,
+        !EJS_SUPPORTED_PLATFORMS.includes(rom?.platform_slug) &&
+          styles.downloadButtonFullWidth,
+        focused ? styles.buttonFocused : null,
+      ]}
+      onPress={handleDownload}
+      disabled={isCurrentlyDownloading}
+      onFocus={() => setFocused(true)}
+      onBlur={() => setFocused(false)}
+      hasTVPreferredFocus={false}
+      isTVSelectable={true}
+      focusable={true}
+      accessible={true}
+    >
+      {/* Progress bar background when downloading */}
+      {isCurrentlyDownloading && (
+        <View style={[styles.progressBackground, StyleSheet.absoluteFill]}>
+          <View
+            style={[
+              styles.progressFill,
+              { width: `${downloadProgress * 100}%` },
+            ]}
+          />
+        </View>
+      )}
+
+      {isCurrentlyDownloading ? (
+        <View style={styles.downloadingContent}>
+          <ActivityIndicator size="small" color="#fff" />
+          <Text style={styles.downloadButtonText}>
+            {currentDownload
+              ? `${t("downloading")} ${Math.round(downloadProgress * 100)}%`
+              : t("addedToQueue")}
+          </Text>
+        </View>
+      ) : (
+        <View style={styles.downloadContent}>
+          <Ionicons name="download-outline" size={20} color="#fff" />
+          <Text style={styles.downloadButtonText}>{t("downloadRom")}</Text>
+        </View>
+      )}
+    </Pressable>
+  );
+}
 
 export default function GameDetailsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -633,81 +735,23 @@ export default function GameDetailsScreen() {
                         {/* Play button for supported platforms */}
                         {EJS_SUPPORTED_PLATFORMS.includes(rom?.platform_slug) &&
                           emuJsEnabled && (
-                            <TouchableOpacity
-                              style={[
-                                styles.downloadButton,
-                                styles.openButton,
-                                styles.playButtonHorizontal,
-                              ]}
-                              onPress={() => handleOpenWith(rom)}
-                            >
-                              <Ionicons
-                                name="play-outline"
-                                size={20}
-                                color="#fff"
-                              />
-                              <Text style={styles.downloadButtonText}>
-                                {t("playOnEmuJS")}
-                              </Text>
-                            </TouchableOpacity>
+                            <PlayButton
+                              rom={rom}
+                              handleOpenWith={handleOpenWith}
+                            />
                           )}
 
                         {/* Download button */}
-                        <TouchableOpacity
-                          style={[
-                            styles.downloadButton,
-                            styles.downloadButtonHorizontal,
-                            isCurrentlyDownloading && styles.downloadingButton,
-                            !(
-                              EJS_SUPPORTED_PLATFORMS.includes(
-                                rom?.platform_slug
-                              ) && emuJsEnabled
-                            ) && styles.downloadButtonFullWidth,
-                          ]}
-                          onPress={handleDownload}
-                          disabled={isCurrentlyDownloading}
-                        >
-                          {/* Progress bar background when downloading */}
-                          {isCurrentlyDownloading && (
-                            <View
-                              style={[
-                                styles.progressBackground,
-                                StyleSheet.absoluteFill,
-                              ]}
-                            >
-                              <View
-                                style={[
-                                  styles.progressFill,
-                                  { width: `${downloadProgress * 100}%` },
-                                ]}
-                              />
-                            </View>
-                          )}
-
-                          {isCurrentlyDownloading ? (
-                            <View style={styles.downloadingContent}>
-                              <ActivityIndicator size="small" color="#fff" />
-                              <Text style={styles.downloadButtonText}>
-                                {currentDownload
-                                  ? `${t("downloading")} ${Math.round(
-                                      downloadProgress * 100
-                                    )}%`
-                                  : t("addedToQueue")}
-                              </Text>
-                            </View>
-                          ) : (
-                            <View style={styles.downloadContent}>
-                              <Ionicons
-                                name="download-outline"
-                                size={20}
-                                color="#fff"
-                              />
-                              <Text style={styles.downloadButtonText}>
-                                {t("downloadRom")}
-                              </Text>
-                            </View>
-                          )}
-                        </TouchableOpacity>
+                        <DownloadButtonComponent
+                          rom={rom}
+                          handleDownload={handleDownload}
+                          isCurrentlyDownloading={
+                            isCurrentlyDownloading || false
+                          }
+                          downloadProgress={downloadProgress}
+                          currentDownload={currentDownload}
+                          t={t}
+                        />
                       </View>
                     </View>
                   );
@@ -915,6 +959,16 @@ const styles = StyleSheet.create({
     marginTop: 10,
     overflow: "hidden", // Ensure progress bar stays within button bounds
     position: "relative", // Allow for absolute positioning of progress bar
+  },
+  buttonFocused: {
+    borderWidth: 3,
+    borderColor: "#00bfff",
+    backgroundColor: "#005fa3",
+    shadowColor: "#00bfff",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 8,
+    elevation: 6,
   },
   downloadSection: {
     gap: 10,
