@@ -446,18 +446,32 @@ class ApiClient {
 
         const url = `${this.baseUrl}/api/login`;
 
+        // Robust Base64 encoding for UTF-8 characters
+        const encodeCredentials = (str: string) => {
+            return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g,
+                function toSolidBytes(match, p1) {
+                    return String.fromCharCode(parseInt(p1, 16));
+                }));
+        };
+
         try {
             const response = await fetch(url, {
                 method: 'POST',
                 headers: {
                     'accept': 'application/json',
-                    "Authorization": "Basic " + btoa(`${credentials.username}:${credentials.password}`),
+                    "Authorization": "Basic " + encodeCredentials(`${credentials.username}:${credentials.password}`),
                 }
             });
 
+            const contentType = response.headers.get("content-type");
+            if (contentType && contentType.indexOf("application/json") === -1) {
+                const text = await response.text();
+                console.error("Received non-JSON response during login:", text.substring(0, 200)); // Log first 200 chars
+                throw new Error(`Server returned non-JSON response (${response.status}). Possible proxy or auth error.`);
+            }
 
             if (!response.ok) {
-                console.log("Repsonse body:", await response.text());
+                console.log("Response body:", await response.text());
                 if (response.status === 401) {
                     throw new Error('Unauthorized. Please check your credentials');
                 }
