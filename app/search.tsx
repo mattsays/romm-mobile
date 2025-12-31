@@ -8,13 +8,14 @@ import {
     FlatList,
     Image,
     Modal,
+    Pressable,
     StyleSheet,
     Text,
     TextInput,
-    TouchableOpacity,
-    View,
+    View
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { FocusableButton } from '../components/FocusableButton';
 import { ProtectedRoute } from '../components/ProtectedRoute';
 import { useDownload } from '../contexts/DownloadContext';
 import { useToast } from '../contexts/ToastContext';
@@ -216,11 +217,22 @@ export default function SearchScreen() {
         const anyChecking = isAnyVersionChecking();
         const allDownloaded = downloadedCount === totalVersions && totalVersions > 0;
 
+        const [focused, setFocused] = useState(false);
+
         return (
-            <TouchableOpacity
-                style={[styles.romCard, { width: cardWidth }]}
-                activeOpacity={0.8}
+            <Pressable
+                style={[
+                    styles.romCard,
+                    { width: cardWidth },
+                    focused && styles.romCardFocused
+                ]}
                 onPress={() => router.push(`/game/${rom.id}`)}
+                onFocus={() => setFocused(true)}
+                onBlur={() => setFocused(false)}
+                hasTVPreferredFocus={false}
+                isTVSelectable={true}
+                focusable={true}
+                accessible={true}
             >
                 <View style={[styles.romImageContainer, { height: cardHeight }]}>
                     {rom.url_cover ? (
@@ -259,7 +271,7 @@ export default function SearchScreen() {
                     {/* Download Button - Only show if not all versions downloaded and none downloading */}
                     {!allDownloaded && !anyDownloading && (
                         <View style={styles.romOverlay}>
-                            <TouchableOpacity
+                            <FocusableButton
                                 style={[styles.downloadButton, {
                                     width: Math.min(32, cardWidth * 0.21),
                                     height: Math.min(32, cardWidth * 0.21)
@@ -267,7 +279,7 @@ export default function SearchScreen() {
                                 onPress={() => handleDownload(rom)}
                             >
                                 <Ionicons name="download-outline" size={Math.min(16, cardWidth * 0.11)} color="#fff" />
-                            </TouchableOpacity>
+                            </FocusableButton>
                         </View>
                     )}
                 </View>
@@ -282,7 +294,7 @@ export default function SearchScreen() {
                         {(rom.fs_size_bytes / (1024 * 1024)).toFixed(1)} MB
                     </Text>
                 </View>
-            </TouchableOpacity>
+            </Pressable>
         );
     };
 
@@ -297,17 +309,17 @@ export default function SearchScreen() {
                 <View style={styles.modalContent}>
                     <View style={styles.modalHeader}>
                         <Text style={styles.modalTitle}>{t('sortBy')}</Text>
-                        <TouchableOpacity
+                        <FocusableButton
                             onPress={() => setShowSortModal(false)}
                             style={styles.modalCloseButton}
                         >
                             <Ionicons name="close" size={24} color="#fff" />
-                        </TouchableOpacity>
+                        </FocusableButton>
                     </View>
 
                     <Text style={styles.sectionTitle}>Criterio</Text>
                     {sortOptions.map((option) => (
-                        <TouchableOpacity
+                        <FocusableButton
                             key={option.key}
                             style={[
                                 styles.sortOption,
@@ -324,12 +336,12 @@ export default function SearchScreen() {
                             {sortBy === option.key && (
                                 <Ionicons name="checkmark" size={20} color="#5f43b2" />
                             )}
-                        </TouchableOpacity>
+                        </FocusableButton>
                     ))}
 
                     <Text style={[styles.sectionTitle, { marginTop: 20 }]}>Direzione</Text>
                     {directionOptions.map((option) => (
-                        <TouchableOpacity
+                        <FocusableButton
                             key={option.key}
                             style={[
                                 styles.sortOption,
@@ -346,7 +358,7 @@ export default function SearchScreen() {
                             {sortDirection === option.key && (
                                 <Ionicons name="checkmark" size={20} color="#5f43b2" />
                             )}
-                        </TouchableOpacity>
+                        </FocusableButton>
                     ))}
                 </View>
             </View>
@@ -358,12 +370,12 @@ export default function SearchScreen() {
             <View style={[styles.container, { paddingTop: insets.top }]}>
                 {/* Header with integrated search bar */}
                 <View style={styles.header}>
-                    <TouchableOpacity
+                    <FocusableButton
                         style={styles.backButton}
                         onPress={() => router.back()}
                     >
                         <Ionicons name="arrow-back" size={24} color="#fff" />
-                    </TouchableOpacity>
+                    </FocusableButton>
                     <View style={styles.searchInputContainer}>
                         <Ionicons name="search" size={18} color="#666" style={styles.searchIcon} />
                         <TextInput
@@ -377,20 +389,20 @@ export default function SearchScreen() {
                             autoFocus
                         />
                         {searchQuery.length > 0 && (
-                            <TouchableOpacity
+                            <FocusableButton
                                 style={styles.clearButton}
                                 onPress={clearSearch}
                             >
                                 <Ionicons name="close-circle" size={18} color="#666" />
-                            </TouchableOpacity>
+                            </FocusableButton>
                         )}
                     </View>
-                    <TouchableOpacity
+                    <FocusableButton
                         style={styles.sortButton}
                         onPress={() => setShowSortModal(true)}
                     >
                         <Ionicons name="funnel-outline" size={20} color="#fff" />
-                    </TouchableOpacity>
+                    </FocusableButton>
                 </View>
 
                 {/* Search Results */}
@@ -562,6 +574,19 @@ const styles = StyleSheet.create({
         backgroundColor: '#111',
         borderRadius: 12,
         overflow: 'hidden',
+        borderWidth: 6,
+        borderColor: 'transparent',
+    },
+    romCardFocused: {
+        borderWidth: 6,
+        borderColor: '#5f43b2',
+        backgroundColor: '#3c2a70',
+        shadowColor: '#5f43b2',
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.8,
+        shadowRadius: 12,
+        elevation: 8,
+        borderRadius: 12,
     },
     romImageContainer: {
         backgroundColor: '#333',

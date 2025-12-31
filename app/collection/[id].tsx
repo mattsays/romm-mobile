@@ -12,10 +12,10 @@ import {
     RefreshControl,
     StyleSheet,
     Text,
-    TouchableOpacity,
     View
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { FocusableButton } from '../../components/FocusableButton';
 import { ProtectedRoute } from '../../components/ProtectedRoute';
 import { useDownload } from '../../contexts/DownloadContext';
 import { useToast } from '../../contexts/ToastContext';
@@ -245,10 +245,23 @@ export default function CollectionScreen({ }: CollectionScreenProps) {
         const anyChecking = isAnyVersionChecking();
         const allDownloaded = downloadedCount === totalVersions && totalVersions > 0;
 
+        // TV focus state
+        const [focused, setFocused] = useState(false);
+
         return (
             <Pressable
-                style={[styles.gameCard, { width: cardWidth }]}
+                style={[
+                    styles.gameCard,
+                    { width: cardWidth },
+                    focused ? styles.gameCardFocused : null
+                ]}
                 onPress={() => router.push(`/game/${rom.id}`)}
+                onFocus={() => setFocused(true)}
+                onBlur={() => setFocused(false)}
+                hasTVPreferredFocus={false}
+                isTVSelectable={true}
+                focusable={true}
+                accessible={true}
             >
                 <View style={[styles.gameImageContainer, { height: cardHeight }]}>
                     {hasImage ? (
@@ -290,7 +303,7 @@ export default function CollectionScreen({ }: CollectionScreenProps) {
                     {/* Download Button - Only show if not all versions downloaded and none downloading */}
                     {!anyDownloaded && !anyDownloading && (
                         <View style={styles.romOverlay}>
-                            <TouchableOpacity
+                            <FocusableButton
                                 style={[styles.downloadButton, {
                                     width: Math.min(32, cardWidth * 0.21),
                                     height: Math.min(32, cardWidth * 0.21)
@@ -298,7 +311,7 @@ export default function CollectionScreen({ }: CollectionScreenProps) {
                                 onPress={() => handleDownload(rom)}
                             >
                                 <Ionicons name="download-outline" size={Math.min(16, cardWidth * 0.11)} color="#fff" />
-                            </TouchableOpacity>
+                            </FocusableButton>
                         </View>
                     )}
                 </View>
@@ -358,12 +371,12 @@ export default function CollectionScreen({ }: CollectionScreenProps) {
                 {/* Header */}
                 <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
                     <View style={styles.headerTop}>
-                        <TouchableOpacity
+                        <FocusableButton
                             style={styles.backButton}
                             onPress={() => router.back()}
                         >
                             <Ionicons name="arrow-back" size={24} color="#fff" />
-                        </TouchableOpacity>
+                        </FocusableButton>
                         <View style={styles.headerInfo}>
                             <Text style={styles.headerTitle} numberOfLines={1}>
                                 {collection?.name || t('collection')}
@@ -373,7 +386,7 @@ export default function CollectionScreen({ }: CollectionScreenProps) {
                             </Text>
                         </View>
                         <View style={styles.headerButtons}>
-                            <TouchableOpacity
+                            <FocusableButton
                                 style={[
                                     styles.downloadAllButton,
                                     availableToDownload === 0 && styles.downloadAllButtonDisabled
@@ -391,7 +404,7 @@ export default function CollectionScreen({ }: CollectionScreenProps) {
                                         )}
                                     </>
                                 )}
-                            </TouchableOpacity>
+                            </FocusableButton>
                         </View>
                     </View>
                     {collection?.description && (
@@ -440,6 +453,8 @@ export default function CollectionScreen({ }: CollectionScreenProps) {
         </ProtectedRoute>
     );
 }
+
+
 
 const styles = StyleSheet.create({
     container: {
@@ -505,6 +520,9 @@ const styles = StyleSheet.create({
     gameCard: {
         marginTop: 20,
         marginBottom: 15,
+        borderWidth: 6,
+        borderColor: 'transparent',
+        borderRadius: 12,
     },
     gameImageContainer: {
         position: 'relative',
@@ -650,5 +668,16 @@ const styles = StyleSheet.create({
     loadingFooterText: {
         color: '#999',
         fontSize: 14,
+    },
+    gameCardFocused: {
+        borderWidth: 6,
+        borderColor: '#5f43b2',
+        backgroundColor: '#3c2a70',
+        shadowColor: '#5f43b2',
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.8,
+        shadowRadius: 12,
+        elevation: 8,
+        borderRadius: 12,
     },
 });

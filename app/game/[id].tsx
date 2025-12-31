@@ -124,7 +124,7 @@ function DownloadButtonComponent({
         styles.downloadButtonHorizontal,
         isCurrentlyDownloading && styles.downloadingButton,
         !EJS_SUPPORTED_PLATFORMS.includes(rom?.platform_slug) &&
-          styles.downloadButtonFullWidth,
+        styles.downloadButtonFullWidth,
         focused ? styles.buttonFocused : null,
       ]}
       onPress={handleDownload}
@@ -166,6 +166,8 @@ function DownloadButtonComponent({
     </Pressable>
   );
 }
+
+import { FocusableButton } from "../../components/FocusableButton";
 
 export default function GameDetailsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -568,9 +570,9 @@ export default function GameDetailsScreen() {
     <ProtectedRoute>
       <ScrollView style={styles.container}>
         <View style={styles.header}>
-          <TouchableOpacity style={styles.backBtn} onPress={handleBack}>
+          <FocusableButton style={styles.backBtn} onPress={handleBack}>
             <Ionicons name="arrow-back" size={24} color="#fff" />
-          </TouchableOpacity>
+          </FocusableButton>
           <Text style={styles.title}>{t("gameDetails")}</Text>
         </View>
 
@@ -614,7 +616,7 @@ export default function GameDetailsScreen() {
             {rom.files && rom.files.length > 1 && (
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>{t("selectVersion")}</Text>
-                <TouchableOpacity
+                <FocusableButton
                   style={styles.versionSelector}
                   onPress={() => setShowVersionSelector(true)}
                 >
@@ -631,7 +633,7 @@ export default function GameDetailsScreen() {
                     </Text>
                   </View>
                   <Ionicons name="chevron-down" size={20} color="#ccc" />
-                </TouchableOpacity>
+                </FocusableButton>
               </View>
             )}
 
@@ -668,7 +670,7 @@ export default function GameDetailsScreen() {
                       <View style={styles.alreadyDownloadedActions}>
                         {EJS_SUPPORTED_PLATFORMS.includes(rom?.platform_slug) &&
                           emuJsEnabled && (
-                            <TouchableOpacity
+                            <FocusableButton
                               style={[styles.downloadButton, styles.openButton]}
                               onPress={() => handleOpenWith(rom)}
                             >
@@ -680,9 +682,9 @@ export default function GameDetailsScreen() {
                               <Text style={styles.downloadButtonText}>
                                 {t("playOnEmuJS")}
                               </Text>
-                            </TouchableOpacity>
+                            </FocusableButton>
                           )}
-                        <TouchableOpacity
+                        <FocusableButton
                           style={[
                             styles.downloadButton,
                             styles.redownloadButton,
@@ -698,8 +700,8 @@ export default function GameDetailsScreen() {
                           <Text style={styles.downloadButtonText}>
                             {t("redownload")}
                           </Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
+                        </FocusableButton>
+                        <FocusableButton
                           style={[styles.downloadButton, styles.verifyButton]}
                           onPress={() => rom && verifyRomFile(rom)}
                         >
@@ -711,8 +713,8 @@ export default function GameDetailsScreen() {
                           <Text style={styles.downloadButtonText}>
                             {t("verify")}
                           </Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
+                        </FocusableButton>
+                        <FocusableButton
                           style={[styles.downloadButton, styles.deleteButton]}
                           onPress={() => handleDeleteFile(rom)}
                         >
@@ -724,7 +726,7 @@ export default function GameDetailsScreen() {
                           <Text style={styles.downloadButtonText}>
                             {t("delete")}
                           </Text>
-                        </TouchableOpacity>
+                        </FocusableButton>
                       </View>
                     </View>
                   );
@@ -787,7 +789,7 @@ export default function GameDetailsScreen() {
               renderItem={({ item, index }) => {
                 const correspondingFile = rom?.files[index];
                 return (
-                  <TouchableOpacity
+                  <FocusableButton
                     style={[
                       styles.versionItem,
                       selectedFileIndex === index && styles.versionItemSelected,
@@ -802,7 +804,7 @@ export default function GameDetailsScreen() {
                         style={[
                           styles.versionItemTitle,
                           selectedFileIndex === index &&
-                            styles.versionItemTitleSelected,
+                          styles.versionItemTitleSelected,
                         ]}
                       >
                         {item.file_name.replace(/\.[^/.]+$/, "") ||
@@ -812,7 +814,7 @@ export default function GameDetailsScreen() {
                         style={[
                           styles.versionItemSubtitle,
                           selectedFileIndex === index &&
-                            styles.versionItemSubtitleSelected,
+                          styles.versionItemSubtitleSelected,
                         ]}
                       >
                         {/* Display file extension */}
@@ -822,7 +824,7 @@ export default function GameDetailsScreen() {
                         style={[
                           styles.versionItemSize,
                           selectedFileIndex === index &&
-                            styles.versionItemSizeSelected,
+                          styles.versionItemSizeSelected,
                         ]}
                       >
                         {formatFileSize(
@@ -837,7 +839,7 @@ export default function GameDetailsScreen() {
                         color="#5f43b2"
                       />
                     )}
-                  </TouchableOpacity>
+                  </FocusableButton>
                 );
               }}
             />
@@ -962,13 +964,19 @@ const styles = StyleSheet.create({
   },
   buttonFocused: {
     borderWidth: 3,
-    borderColor: "#00bfff",
-    backgroundColor: "#005fa3",
-    shadowColor: "#00bfff",
+    borderColor: "#5f43b2",
+    backgroundColor: "#3c2a70",
+    shadowColor: "#5f43b2",
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.8,
     shadowRadius: 8,
     elevation: 6,
+  },
+  focusedItem: {
+    borderColor: '#5f43b2',
+    borderWidth: 2,
+    backgroundColor: '#3c2a70',
+    borderRadius: 12,
   },
   downloadSection: {
     gap: 10,
@@ -1088,14 +1096,14 @@ const styles = StyleSheet.create({
   },
   // Version Selector Styles
   versionSelector: {
-    backgroundColor: "#111",
+    backgroundColor: "#333",
     borderRadius: 12,
     padding: 16,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    borderWidth: 1,
-    borderColor: "#333",
+    borderWidth: 2,
+    borderColor: "#555",
   },
   versionInfo: {
     flex: 1,

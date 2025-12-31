@@ -16,13 +16,13 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
-  View,
+  View
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BaseFolderModal } from "../components/BaseFolderModal";
 import { CollectionCoverGrid } from "../components/CollectionCoverGrid";
 import { DownloadStatusBar } from "../components/DownloadStatusBar";
+import { FocusableButton } from "../components/FocusableButton";
 import { ProtectedRoute } from "../components/ProtectedRoute";
 import { useDownload } from "../contexts/DownloadContext";
 import { useToast } from "../contexts/ToastContext";
@@ -43,6 +43,194 @@ import {
 import { updateService } from "../services/updateService";
 
 const { width } = Dimensions.get("window");
+
+interface PlatformCardProps {
+  platform: ApiPlatform;
+  t: any;
+}
+
+function PlatformCard({ platform, t }: PlatformCardProps) {
+  const [focused, setFocused] = useState(false);
+  return (
+    <Pressable
+      style={[styles.platformCard, focused ? styles.romCardFocused : null]}
+      onPress={() => router.push(`/platform/${platform.id}`)}
+      onFocus={() => setFocused(true)}
+      onBlur={() => setFocused(false)}
+      hasTVPreferredFocus={false}
+      isTVSelectable={true}
+      focusable={true}
+      accessible={true}
+    >
+      <View style={styles.platformImageContainer}>
+        <Image
+          source={{
+            uri: `${apiClient.baseUrl}/assets/platforms/${platform.slug}.ico`,
+          }}
+          style={styles.platformImage}
+        />
+      </View>
+      <View style={styles.platformInfo}>
+        <Text style={styles.platformName} numberOfLines={1}>
+          {platform.name}
+        </Text>
+        <Text style={styles.gamesCount}>
+          {platform.rom_count} {t("games")}
+        </Text>
+      </View>
+    </Pressable>
+  );
+}
+
+interface CollectionCardProps {
+  collection: Collection;
+  t: any;
+}
+
+function CollectionCard({ collection, t }: CollectionCardProps) {
+  const [focused, setFocused] = useState(false);
+  return (
+    <Pressable
+      style={[styles.collectionCard, focused ? styles.romCardFocused : null]}
+      onPress={() =>
+        router.push(
+          `/collection/${collection.id}?virtual=${collection.is_virtual}`
+        )
+      }
+      onFocus={() => setFocused(true)}
+      onBlur={() => setFocused(false)}
+      hasTVPreferredFocus={false}
+      isTVSelectable={true}
+      focusable={true}
+      accessible={true}
+    >
+      <View style={styles.collectionImageContainer}>
+        <CollectionCoverGrid
+          covers={collection.path_covers_small || []}
+          style={styles.collectionImage}
+        />
+      </View>
+      <View style={styles.collectionInfo}>
+        <Text style={styles.collectionName} numberOfLines={1}>
+          {collection.name}
+        </Text>
+        <Text style={styles.collectionCount}>
+          {collection.rom_count} {t("games")}
+        </Text>
+      </View>
+    </Pressable>
+  );
+}
+
+interface RomCardProps {
+  rom: Rom;
+  t: any;
+  isRomDownloaded: (file: any) => boolean;
+  isRomDownloading: (file: any) => boolean;
+  isCheckingRom: (file: any) => boolean;
+  onDownload: (rom: Rom) => void;
+}
+
+const RomCard = ({
+  rom,
+  t,
+  isRomDownloaded,
+  isRomDownloading,
+  isCheckingRom,
+  onDownload,
+}: RomCardProps) => {
+  // Helper function to count downloaded versions
+  const getDownloadedVersionsCount = () => {
+    if (!rom.files || rom.files.length === 0) return 0;
+    return rom.files.filter((file) => isRomDownloaded(file)).length;
+  };
+
+  // Helper function to check if any version is downloading
+  const isAnyVersionDownloading = () => {
+    if (!rom.files || rom.files.length === 0) return false;
+    return rom.files.some((file) => isRomDownloading(file));
+  };
+
+  // Helper function to check if any version is being checked
+  const isAnyVersionChecking = () => {
+    if (!rom.files || rom.files.length === 0) return false;
+    return rom.files.some((file) => isCheckingRom(file));
+  };
+
+  const downloadedCount = getDownloadedVersionsCount();
+  const totalVersions = rom.files?.length || 0;
+  const hasMultipleVersions = totalVersions > 1;
+  const anyDownloaded = downloadedCount > 0;
+  const anyDownloading = isAnyVersionDownloading();
+  const anyChecking = isAnyVersionChecking();
+  const allDownloaded = downloadedCount === totalVersions && totalVersions > 0;
+
+  const [focused, setFocused] = useState(false);
+  return (
+    <Pressable
+      style={[styles.romCard, focused ? styles.romCardFocused : null]}
+      onPress={() => router.push(`/game/${rom.id}`)}
+      onFocus={() => setFocused(true)}
+      onBlur={() => setFocused(false)}
+      hasTVPreferredFocus={false}
+      isTVSelectable={true}
+      focusable={true}
+      accessible={true}
+    >
+      <View style={styles.romImageContainer}>
+        {rom.url_cover ? (
+          <Image source={{ uri: rom.url_cover }} style={styles.romImage} />
+        ) : (
+          <View style={styles.romPlaceholder}>
+            <Ionicons name="game-controller-outline" size={32} color="#666" />
+          </View>
+        )}
+
+        {/* Status Badges */}
+        {anyDownloaded && (
+          <View style={styles.completedBadge}>
+            <Ionicons name="checkmark-circle" size={24} color="#34C759" />
+            {hasMultipleVersions && (
+              <Text style={styles.versionCountBadge}>
+                {downloadedCount}/{totalVersions}
+              </Text>
+            )}
+          </View>
+        )}
+        {anyChecking && !anyDownloaded && (
+          <View style={styles.checkingBadge}>
+            <ActivityIndicator size={16} color="#FF9500" />
+          </View>
+        )}
+        {anyDownloading && (
+          <View style={styles.downloadingBadge}>
+            <Ionicons name="download" size={20} color="#FFFFFF" />
+          </View>
+        )}
+
+        {/* Download Button - Only show if not all versions downloaded and none downloading */}
+        {!anyDownloaded && !anyDownloading && (
+          <View style={styles.romOverlay}>
+            <FocusableButton
+              style={styles.downloadButton}
+              onPress={() => onDownload(rom)}
+            >
+              <Ionicons name="download-outline" size={16} color="#fff" />
+            </FocusableButton>
+          </View>
+        )}
+      </View>
+      <View style={styles.romInfo}>
+        <Text style={styles.romName} numberOfLines={2}>
+          {rom.name}
+        </Text>
+        <Text style={styles.romPlatform} numberOfLines={1}>
+          {rom.platform_name}
+        </Text>
+      </View>
+    </Pressable>
+  );
+};
 
 export default function LibraryScreen() {
   const { t } = useTranslation();
@@ -162,7 +350,7 @@ export default function LibraryScreen() {
     };
 
     checkBaseFolderRequired();
-  }, [FileSystem.documentDirectory, canAccessBaseFolder]);
+  }, [(FileSystem as any).documentDirectory, canAccessBaseFolder]);
 
   // // Check filesystem for existing ROMs when recently added ROMs are loaded
   // useEffect(() => {
@@ -239,168 +427,6 @@ export default function LibraryScreen() {
     setBaseFolderChecked(true);
   };
 
-  function PlatformCard({ platform }: { platform: ApiPlatform }) {
-    const [focused, setFocused] = useState(false);
-    return (
-      <Pressable
-        style={[styles.platformCard, focused ? styles.romCardFocused : null]}
-        onPress={() => router.push(`/platform/${platform.id}`)}
-        onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
-        hasTVPreferredFocus={false}
-        isTVSelectable={true}
-        focusable={true}
-        accessible={true}
-      >
-        <View style={styles.platformImageContainer}>
-          <Image
-            source={{
-              uri: `${apiClient.baseUrl}/assets/platforms/${platform.slug}.ico`,
-            }}
-            style={styles.platformImage}
-          />
-        </View>
-        <View style={styles.platformInfo}>
-          <Text style={styles.platformName} numberOfLines={1}>
-            {platform.name}
-          </Text>
-          <Text style={styles.gamesCount}>
-            {platform.rom_count} {t("games")}
-          </Text>
-        </View>
-      </Pressable>
-    );
-  }
-
-  function CollectionCard({ collection }: { collection: Collection }) {
-    const [focused, setFocused] = useState(false);
-    return (
-      <Pressable
-        style={[styles.collectionCard, focused ? styles.romCardFocused : null]}
-        onPress={() =>
-          router.push(
-            `/collection/${collection.id}?virtual=${collection.is_virtual}`
-          )
-        }
-        onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
-        hasTVPreferredFocus={false}
-        isTVSelectable={true}
-        focusable={true}
-        accessible={true}
-      >
-        <View style={styles.collectionImageContainer}>
-          <CollectionCoverGrid
-            covers={collection.path_covers_small || []}
-            style={styles.collectionImage}
-          />
-        </View>
-        <View style={styles.collectionInfo}>
-          <Text style={styles.collectionName} numberOfLines={1}>
-            {collection.name}
-          </Text>
-          <Text style={styles.collectionCount}>
-            {collection.rom_count} {t("games")}
-          </Text>
-        </View>
-      </Pressable>
-    );
-  }
-
-  const RomCard = ({ rom }: { rom: Rom }) => {
-    // Helper function to count downloaded versions
-    const getDownloadedVersionsCount = () => {
-      if (!rom.files || rom.files.length === 0) return 0;
-      return rom.files.filter((file) => isRomDownloaded(file)).length;
-    };
-
-    // Helper function to check if any version is downloading
-    const isAnyVersionDownloading = () => {
-      if (!rom.files || rom.files.length === 0) return false;
-      return rom.files.some((file) => isRomDownloading(file));
-    };
-
-    // Helper function to check if any version is being checked
-    const isAnyVersionChecking = () => {
-      if (!rom.files || rom.files.length === 0) return false;
-      return rom.files.some((file) => isCheckingRom(file));
-    };
-
-    const downloadedCount = getDownloadedVersionsCount();
-    const totalVersions = rom.files?.length || 0;
-    const hasMultipleVersions = totalVersions > 1;
-    const anyDownloaded = downloadedCount > 0;
-    const anyDownloading = isAnyVersionDownloading();
-    const anyChecking = isAnyVersionChecking();
-    const allDownloaded =
-      downloadedCount === totalVersions && totalVersions > 0;
-
-    const [focused, setFocused] = useState(false);
-    return (
-      <Pressable
-        style={[styles.romCard, focused ? styles.romCardFocused : null]}
-        onPress={() => router.push(`/game/${rom.id}`)}
-        onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
-        hasTVPreferredFocus={false}
-        isTVSelectable={true}
-        focusable={true}
-        accessible={true}
-      >
-        <View style={styles.romImageContainer}>
-          {rom.url_cover ? (
-            <Image source={{ uri: rom.url_cover }} style={styles.romImage} />
-          ) : (
-            <View style={styles.romPlaceholder}>
-              <Ionicons name="game-controller-outline" size={32} color="#666" />
-            </View>
-          )}
-
-          {/* Status Badges */}
-          {anyDownloaded && (
-            <View style={styles.completedBadge}>
-              <Ionicons name="checkmark-circle" size={24} color="#34C759" />
-              {hasMultipleVersions && (
-                <Text style={styles.versionCountBadge}>
-                  {downloadedCount}/{totalVersions}
-                </Text>
-              )}
-            </View>
-          )}
-          {anyChecking && !anyDownloaded && (
-            <View style={styles.checkingBadge}>
-              <ActivityIndicator size={16} color="#FF9500" />
-            </View>
-          )}
-          {anyDownloading && (
-            <View style={styles.downloadingBadge}>
-              <Ionicons name="download" size={20} color="#FFFFFF" />
-            </View>
-          )}
-
-          {/* Download Button - Only show if not all versions downloaded and none downloading */}
-          {!anyDownloaded && !anyDownloading && (
-            <View style={styles.romOverlay}>
-              <TouchableOpacity
-                style={styles.downloadButton}
-                onPress={() => handleDownload(rom)}
-              >
-                <Ionicons name="download-outline" size={16} color="#fff" />
-              </TouchableOpacity>
-            </View>
-          )}
-        </View>
-        <View style={styles.romInfo}>
-          <Text style={styles.romName} numberOfLines={2}>
-            {rom.name}
-          </Text>
-          <Text style={styles.romPlatform} numberOfLines={1}>
-            {rom.platform_name}
-          </Text>
-        </View>
-      </Pressable>
-    );
-  };
 
   // Function to check for app updates (Android only)
   const checkForAppUpdates = async () => {
@@ -466,13 +492,13 @@ export default function LibraryScreen() {
                 )}
               </View>
               <View style={styles.headerButtons}>
-                <TouchableOpacity
+                <FocusableButton
                   style={styles.headerButton}
                   onPress={() => router.push("/search")}
                 >
                   <Ionicons name="search-outline" size={24} color="#fff" />
-                </TouchableOpacity>
-                <TouchableOpacity
+                </FocusableButton>
+                <FocusableButton
                   style={[
                     styles.headerButton,
                     activeDownloads.length > 0 && styles.downloadButtonActive,
@@ -487,14 +513,14 @@ export default function LibraryScreen() {
                       </Text>
                     </View>
                   )}
-                </TouchableOpacity>
-                <TouchableOpacity
+                </FocusableButton>
+                <FocusableButton
                   style={styles.headerButton}
                   onPress={() => router.push("/settings")}
                 >
                   <Ionicons name="settings-outline" size={24} color="#fff" />
-                </TouchableOpacity>
-                <TouchableOpacity
+                </FocusableButton>
+                <FocusableButton
                   style={styles.headerButton}
                   onPress={handleLogout}
                   disabled={isLoggingOut}
@@ -504,7 +530,7 @@ export default function LibraryScreen() {
                   ) : (
                     <Ionicons name="log-out-outline" size={24} color="#fff" />
                   )}
-                </TouchableOpacity>
+                </FocusableButton>
               </View>
             </View>
           </View>
@@ -520,7 +546,16 @@ export default function LibraryScreen() {
               ) : (
                 <FlatList
                   data={recentlyAddedRoms}
-                  renderItem={({ item }) => <RomCard rom={item} />}
+                  renderItem={({ item }) => (
+                    <RomCard
+                      rom={item}
+                      t={t}
+                      isRomDownloaded={isRomDownloaded}
+                      isRomDownloading={isRomDownloading}
+                      isCheckingRom={isCheckingRom}
+                      onDownload={handleDownload}
+                    />
+                  )}
                   keyExtractor={(item) => item.id.toString()}
                   horizontal
                   showsHorizontalScrollIndicator={false}
@@ -538,7 +573,7 @@ export default function LibraryScreen() {
                 data={platforms}
                 renderItem={({ item }) => {
                   if (item.rom_count > 0) {
-                    return <PlatformCard platform={item} />;
+                    return <PlatformCard platform={item} t={t} />;
                   }
                   return null;
                 }}
@@ -569,7 +604,9 @@ export default function LibraryScreen() {
               <Text style={styles.sectionTitle}>{t("customCollections")}</Text>
               <FlatList
                 data={userCollections}
-                renderItem={({ item }) => <CollectionCard collection={item} />}
+                renderItem={({ item }) => (
+                  <CollectionCard collection={item} t={t} />
+                )}
                 keyExtractor={(item) => item.id.toString()}
                 horizontal
                 showsHorizontalScrollIndicator={false}
@@ -591,7 +628,7 @@ export default function LibraryScreen() {
                       <FlatList
                         data={collections}
                         renderItem={({ item }) => (
-                          <CollectionCard collection={item} />
+                          <CollectionCard collection={item} t={t} />
                         )}
                         keyExtractor={(item) => item.id.toString()}
                         horizontal
@@ -700,6 +737,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#111",
     borderRadius: 12,
     overflow: "hidden",
+    borderWidth: 6,
+    borderColor: "transparent",
   },
   platformImageContainer: {
     position: "relative",
@@ -732,6 +771,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#111",
     borderRadius: 12,
     overflow: "hidden",
+    borderWidth: 6,
+    borderColor: "transparent",
   },
   collectionImageContainer: {
     height: 100,
@@ -825,18 +866,19 @@ const styles = StyleSheet.create({
     backgroundColor: "#111",
     borderRadius: 12,
     overflow: "hidden",
-    borderWidth: 0,
+    borderWidth: 6,
     borderColor: "transparent",
   },
   romCardFocused: {
     borderWidth: 6,
-    borderColor: "#00bfff",
-    backgroundColor: "#005fa3",
-    shadowColor: "#00bfff",
+    borderColor: "#5f43b2",
+    backgroundColor: "#3c2a70",
+    shadowColor: "#5f43b2",
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.8,
     shadowRadius: 12,
     elevation: 8,
+    borderRadius: 12,
   },
   romImageContainer: {
     height: 100,

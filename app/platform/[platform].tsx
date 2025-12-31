@@ -12,9 +12,9 @@ import {
   RefreshControl,
   StyleSheet,
   Text,
-  TouchableOpacity,
-  View,
+  View
 } from "react-native";
+import { FocusableButton } from "../../components/FocusableButton";
 import { useDownload } from "../../contexts/DownloadContext";
 import { useToast } from "../../contexts/ToastContext";
 import { useDynamicColumns } from "../../hooks/useDynamicColumns";
@@ -342,7 +342,7 @@ export default function PlatformScreen() {
           {/* Download Button - Only show if not all versions downloaded and none downloading */}
           {!anyDownloaded && !anyDownloading && (
             <View style={styles.romOverlay}>
-              <TouchableOpacity
+              <FocusableButton
                 style={[
                   styles.downloadButton,
                   {
@@ -357,7 +357,7 @@ export default function PlatformScreen() {
                   size={Math.min(16, cardWidth * 0.11)}
                   color="#fff"
                 />
-              </TouchableOpacity>
+              </FocusableButton>
             </View>
           )}
         </View>
@@ -426,12 +426,12 @@ export default function PlatformScreen() {
       {/* Header Section */}
       <View style={styles.header}>
         <View style={styles.headerTop}>
-          <TouchableOpacity
+          <FocusableButton
             style={styles.backButton}
             onPress={navigation.goBack}
           >
             <Ionicons name="arrow-back-outline" size={24} color="#fff" />
-          </TouchableOpacity>
+          </FocusableButton>
           <View style={styles.headerLeft}>
             <Text style={styles.headerTitle}>
               {currentPlatform?.name || t("unknownPlatform")}
@@ -443,14 +443,14 @@ export default function PlatformScreen() {
           </View>
           <View style={styles.headerButtons}>
             {Platform.OS === "android" && (
-              <TouchableOpacity
+              <FocusableButton
                 style={styles.folderButton}
                 onPress={() => requestPlatformFolder(currentPlatform, true)}
               >
                 <Ionicons name="folder-outline" size={20} color="#fff" />
-              </TouchableOpacity>
+              </FocusableButton>
             )}
-            <TouchableOpacity
+            <FocusableButton
               style={[
                 styles.downloadAllButton,
                 availableToDownload === 0 && styles.downloadAllButtonDisabled,
@@ -470,7 +470,7 @@ export default function PlatformScreen() {
                   )}
                 </>
               )}
-            </TouchableOpacity>
+            </FocusableButton>
           </View>
         </View>
       </View>
@@ -513,6 +513,8 @@ export default function PlatformScreen() {
     </View>
   );
 }
+
+
 
 const styles = StyleSheet.create({
   container: {
@@ -695,16 +697,20 @@ const styles = StyleSheet.create({
   },
   gameCard: {
     marginBottom: 15,
+    borderWidth: 6,
+    borderColor: "transparent",
+    borderRadius: 12,
   },
   gameCardFocused: {
     borderWidth: 6,
-    borderColor: "#00bfff",
-    backgroundColor: "#005fa3",
-    shadowColor: "#00bfff",
+    borderColor: "#5f43b2",
+    backgroundColor: "#3c2a70",
+    shadowColor: "#5f43b2",
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.8,
     shadowRadius: 12,
     elevation: 8,
+    borderRadius: 12,
   },
   gameImageContainer: {
     position: "relative",
