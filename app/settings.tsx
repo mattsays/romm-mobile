@@ -9,11 +9,11 @@ import {
     Platform,
     ScrollView,
     StyleSheet,
-    Switch,
     Text,
-    TouchableOpacity,
     View
 } from 'react-native';
+import { FocusableButton } from '../components/FocusableButton';
+import { FocusableSwitchRow } from '../components/FocusableSwitchRow';
 import { useToast } from '../contexts/ToastContext';
 import { usePlatformFolders } from '../hooks/usePlatformFolders';
 import { useStorageAccessFramework } from '../hooks/useStorageAccessFramework';
@@ -427,12 +427,13 @@ export default function SettingsScreen() {
             <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
                 {/* Header */}
                 <View style={styles.header}>
-                    <TouchableOpacity
+                    <FocusableButton
                         style={styles.backButton}
                         onPress={() => router.back()}
+                        hasTVPreferredFocus={true}
                     >
                         <Ionicons name="arrow-back" size={24} color="#fff" />
-                    </TouchableOpacity>
+                    </FocusableButton>
                     <Text style={styles.headerTitle}>{t('settings')}</Text>
                 </View>
 
@@ -457,22 +458,22 @@ export default function SettingsScreen() {
                                 </View>
                             </View>
                             <View style={styles.folderActions}>
-                                <TouchableOpacity
+                                <FocusableButton
                                     style={[styles.button, styles.changeButton]}
                                     onPress={changeBaseFolder}
                                 >
                                     <Text style={styles.buttonText}>{t('change')}</Text>
-                                </TouchableOpacity>
+                                </FocusableButton>
                             </View>
                         </View>
                     ) : (
-                        <TouchableOpacity
+                        <FocusableButton
                             style={[styles.button, styles.selectButton]}
                             onPress={changeBaseFolder}
                         >
                             <Ionicons name="folder-outline" size={20} color="#fff" />
                             <Text style={styles.buttonText}>{t('selectBaseFolder')}</Text>
-                        </TouchableOpacity>
+                        </FocusableButton>
                     )}
                 </View>}
 
@@ -502,32 +503,32 @@ export default function SettingsScreen() {
                                         </View>
                                     </View>
                                     <View style={styles.folderActions}>
-                                        <TouchableOpacity
+                                        <FocusableButton
                                             style={[styles.button, styles.changeButton]}
                                             onPress={() => changePlatformFolder(platform.platformSlug, platform.platformName)}
                                         >
                                             <Ionicons name="create-outline" size={20} color="#fff" />
                                             <Text style={styles.buttonText}>{t('change')}</Text>
-                                        </TouchableOpacity>
-                                        <TouchableOpacity
+                                        </FocusableButton>
+                                        <FocusableButton
                                             style={[styles.button, styles.removeButton]}
                                             onPress={() => removePlatformFolderConfirm(platform.platformSlug, platform.platformName)}
                                         >
                                             <Ionicons name="trash-outline" size={20} color="#fff" />
                                             <Text style={styles.buttonText}>{t('remove')}</Text>
-                                        </TouchableOpacity>
+                                        </FocusableButton>
                                     </View>
                                 </View>
                             ))}
 
                             {/* Remove All Button */}
-                            <TouchableOpacity
+                            <FocusableButton
                                 style={[styles.button, styles.removeAllButton]}
                                 onPress={removeAllPlatformFoldersConfirm}
                             >
                                 <Ionicons name="trash-bin-outline" size={20} color="#fff" />
                                 <Text style={styles.buttonText}>{t('removeAllPlatformFolders')}</Text>
-                            </TouchableOpacity>
+                            </FocusableButton>
 
                         </View>
                     ) : (
@@ -544,56 +545,40 @@ export default function SettingsScreen() {
                 <View style={styles.section}>
                     <Text style={styles.sectionTitle}>{t('downloadSettings')}</Text>
                     <Text style={styles.sectionDescription}>
-                        {t('downloadSettings')}
+                        {t('downloadSettingsDescription')}
                     </Text>
 
-                    <View style={styles.settingItem}>
-                        <View style={styles.settingInfo}>
-                            <Text style={styles.settingTitle}>{t('unzipFiles')}</Text>
-                            <Text style={styles.settingDescription}>
-                                {t('unzipFilesDescription')}
-                            </Text>
-                        </View>
-                        <Switch
-                            value={unzipFilesOnDownload}
-                            onValueChange={saveUnzipSetting}
-                            trackColor={{ false: '#3e3e3e', true: '#4CAF50' }}
-                            thumbColor={unzipFilesOnDownload ? '#fff' : '#f4f3f4'}
-                            ios_backgroundColor="#3e3e3e"
-                        />
-                    </View>
+                    {/* Unzip Files Setting */}
+                    <FocusableSwitchRow
+                        label={t('unzipFiles')}
+                        description={t('unzipFilesDescription')}
+                        value={unzipFilesOnDownload}
+                        onValueChange={saveUnzipSetting}
+                    />
 
-                    <View style={styles.settingItem}>
+                    {/* Concurrent Downloads Setting */}
+                    <FocusableSettingItem onPress={() => setShowConcurrentDownloadsPicker(true)}>
                         <View style={styles.settingInfo}>
                             <Text style={styles.settingTitle}>{t('concurrentDownloads')}</Text>
                             <Text style={styles.settingDescription}>
                                 {t('concurrentDownloadsDescription')}
                             </Text>
                         </View>
-                        <TouchableOpacity
+                        <View
                             style={styles.pickerButton}
-                            onPress={() => setShowConcurrentDownloadsPicker(true)}
                         >
                             <Text style={styles.pickerButtonText}>{concurrentDownloads}</Text>
                             <Ionicons name="chevron-down" size={16} color="#ccc" />
-                        </TouchableOpacity>
-                    </View>
-
-                    <View style={styles.settingItem}>
-                        <View style={styles.settingInfo}>
-                            <Text style={styles.settingTitle}>Enable EmuJS</Text>
-                            <Text style={styles.settingDescription}>
-                                Enable in-browser ROM emulation using EmuJS
-                            </Text>
                         </View>
-                        <Switch
-                            value={emuJsEnabled}
-                            onValueChange={saveEmuJsEnabledSetting}
-                            trackColor={{ false: '#3e3e3e', true: '#4CAF50' }}
-                            thumbColor={emuJsEnabled ? '#fff' : '#f4f3f4'}
-                            ios_backgroundColor="#3e3e3e"
-                        />
-                    </View>
+                    </FocusableSettingItem>
+
+                    {/* EmuJS Setting */}
+                    <FocusableSwitchRow
+                        label="Enable EmuJS"
+                        description="Enable in-browser ROM emulation using EmuJS"
+                        value={emuJsEnabled}
+                        onValueChange={saveEmuJsEnabledSetting}
+                    />
                 </View>
 
                 {/* App Update Section */}
@@ -604,21 +589,13 @@ export default function SettingsScreen() {
                             {t('appUpdateDescription')}
                         </Text>
 
-                        <View style={styles.settingItem}>
-                            <View style={styles.settingInfo}>
-                                <Text style={styles.settingTitle}>{t('enableAppUpdates')}</Text>
-                                <Text style={styles.settingDescription}>
-                                    {t('enableAppUpdatesDescription')}
-                                </Text>
-                            </View>
-                            <Switch
-                                value={appUpdatesEnabled}
-                                onValueChange={saveAppUpdatesEnabledSetting}
-                                trackColor={{ false: '#3e3e3e', true: '#4CAF50' }}
-                                thumbColor={appUpdatesEnabled ? '#fff' : '#f4f3f4'}
-                                ios_backgroundColor="#3e3e3e"
-                            />
-                        </View>
+                        {/* App Updates Setting */}
+                        <FocusableSwitchRow
+                            label={t('enableAppUpdates')}
+                            description={t('enableAppUpdatesDescription')}
+                            value={appUpdatesEnabled}
+                            onValueChange={saveAppUpdatesEnabledSetting}
+                        />
 
                         <View style={styles.updateContainer}>
                             <View style={styles.versionInfo}>
@@ -630,7 +607,7 @@ export default function SettingsScreen() {
                                     </View>
                                 )}
                             </View>
-                            <TouchableOpacity
+                            <FocusableButton
                                 style={[
                                     styles.button,
                                     styles.checkButton,
@@ -651,7 +628,7 @@ export default function SettingsScreen() {
                                             : t('checkForUpdates')
                                     }
                                 </Text>
-                            </TouchableOpacity>
+                            </FocusableButton>
                         </View>
                         {isDownloading && (
                             <View style={styles.downloadStatus}>
@@ -686,7 +663,7 @@ export default function SettingsScreen() {
                             <Text style={styles.noFoldersText}>{t('loading')}</Text>
                         ) : (
                             supportedLocales.map((localeCode) => (
-                                <TouchableOpacity
+                                <FocusableButton
                                     key={localeCode}
                                     style={[
                                         styles.languageButton,
@@ -709,7 +686,7 @@ export default function SettingsScreen() {
                                     {locale === localeCode && (
                                         <Ionicons name="checkmark-circle" size={18} color="#4CAF50" style={styles.checkIcon} />
                                     )}
-                                </TouchableOpacity>
+                                </FocusableButton>
                             ))
                         )}
                     </View>
@@ -728,17 +705,17 @@ export default function SettingsScreen() {
                     <View style={styles.modalContent}>
                         <View style={styles.modalHeader}>
                             <Text style={styles.modalTitle}>{t('concurrentDownloads')}</Text>
-                            <TouchableOpacity
+                            <FocusableButton
                                 onPress={() => setShowConcurrentDownloadsPicker(false)}
                                 style={styles.closeButton}
                             >
                                 <Ionicons name="close" size={24} color="#fff" />
-                            </TouchableOpacity>
+                            </FocusableButton>
                         </View>
 
                         <View style={styles.pickerOptions}>
                             {[1, 2, 3, 4, 5].map((number) => (
-                                <TouchableOpacity
+                                <FocusableButton
                                     key={number}
                                     style={[
                                         styles.pickerOption,
@@ -758,12 +735,32 @@ export default function SettingsScreen() {
                                     {concurrentDownloads === number && (
                                         <Ionicons name="checkmark-circle" size={20} color="#4CAF50" />
                                     )}
-                                </TouchableOpacity>
+                                </FocusableButton>
                             ))}
                         </View>
                     </View>
                 </View>
             </Modal>
+        </View>
+    );
+}
+
+// Helper component for TV focus support
+function FocusableSettingItem({ children, onPress }: any) {
+    if (onPress) {
+        return (
+            <FocusableButton
+                onPress={onPress}
+                style={styles.settingItem}
+            >
+                {children}
+            </FocusableButton>
+        );
+    }
+
+    return (
+        <View style={styles.settingItem}>
+            {children}
         </View>
     );
 }

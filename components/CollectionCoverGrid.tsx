@@ -12,7 +12,6 @@ export const CollectionCoverGrid: React.FC<CollectionCoverGridProps> = ({ covers
     // Take up to 4 random covers for the grid
     const selectedCovers = covers && covers.length > 0 ?
         covers
-            .sort(() => 0.5 - Math.random()) // Shuffle array
             .slice(0, 4) // Take first 4
             .map(cover => `${apiClient.baseUrl}${cover}`) // Complete the URL
         : [];

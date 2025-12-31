@@ -7,9 +7,9 @@ import {
     SafeAreaView,
     StyleSheet,
     Text,
-    TouchableOpacity,
     View
 } from 'react-native';
+import { FocusableButton } from '../../components/FocusableButton';
 import { DownloadItem, DownloadStatus, useDownload } from '../../contexts/DownloadContext';
 import { useTranslation } from '../../hooks/useTranslation';
 
@@ -132,47 +132,47 @@ export default function DownloadsScreen() {
                 </View>
                 <View style={styles.downloadActions}>
                     {item.status === DownloadStatus.DOWNLOADING && (
-                        <TouchableOpacity
+                        <FocusableButton
                             style={styles.actionButton}
                             onPress={() => pauseDownload(item.id)}
                         >
                             <Ionicons name="pause" size={20} color="#007AFF" />
-                        </TouchableOpacity>
+                        </FocusableButton>
                     )}
                     {item.status === DownloadStatus.PAUSED && (
-                        <TouchableOpacity
+                        <FocusableButton
                             style={styles.actionButton}
                             onPress={() => resumeDownload(item.id)}
                         >
                             <Ionicons name="play" size={20} color="#34C759" />
-                        </TouchableOpacity>
+                        </FocusableButton>
                     )}
                     {(item.status === DownloadStatus.FAILED || item.status === DownloadStatus.CANCELLED) && (
-                        <TouchableOpacity
+                        <FocusableButton
                             style={styles.actionButton}
                             onPress={() => retryDownload(item.id)}
                         >
                             <Ionicons name="refresh" size={20} color="#FF9500" />
-                        </TouchableOpacity>
+                        </FocusableButton>
                     )}
                     {(item.status === DownloadStatus.PENDING ||
                         item.status === DownloadStatus.DOWNLOADING ||
                         item.status === DownloadStatus.PAUSED ||
                         item.status === DownloadStatus.EXTRACTING ||
                         item.status === DownloadStatus.MOVING) && (
-                            <TouchableOpacity
+                            <FocusableButton
                                 style={styles.actionButton}
                                 onPress={() => cancelDownload(item.id)}
                             >
                                 <Ionicons name="close" size={20} color="#FF3B30" />
-                            </TouchableOpacity>
+                            </FocusableButton>
                         )}
-                    <TouchableOpacity
+                    <FocusableButton
                         style={styles.actionButton}
                         onPress={() => removeFromQueue(item.id)}
                     >
                         <Ionicons name="trash" size={20} color="#8E8E93" />
-                    </TouchableOpacity>
+                    </FocusableButton>
                 </View>
             </View>
 
@@ -233,12 +233,12 @@ export default function DownloadsScreen() {
         <SafeAreaView style={styles.container}>
             {/* Header */}
             <View style={styles.header}>
-                <TouchableOpacity
+                <FocusableButton
                     style={styles.backButton}
                     onPress={() => router.back()}
                 >
                     <Ionicons name="arrow-back" size={24} color="#fff" />
-                </TouchableOpacity>
+                </FocusableButton>
                 <Text style={styles.title}>{t('downloads')}</Text>
                 <View style={styles.headerSpacer} />
             </View>
@@ -263,20 +263,20 @@ export default function DownloadsScreen() {
             {(completedDownloads.length > 0 || failedDownloads.length > 0) && (
                 <View style={styles.clearButtons}>
                     {completedDownloads.length > 0 && (
-                        <TouchableOpacity
+                        <FocusableButton
                             style={[styles.clearButton, styles.clearCompletedButton]}
                             onPress={clearCompleted}
                         >
                             <Text style={styles.clearButtonText}>{t('clearCompleted')}</Text>
-                        </TouchableOpacity>
+                        </FocusableButton>
                     )}
                     {failedDownloads.length > 0 && (
-                        <TouchableOpacity
+                        <FocusableButton
                             style={[styles.clearButton, styles.clearFailedButton]}
                             onPress={clearFailed}
                         >
                             <Text style={styles.clearButtonText}>{t('clearFailed')}</Text>
-                        </TouchableOpacity>
+                        </FocusableButton>
                     )}
                 </View>
             )}
@@ -324,6 +324,8 @@ export default function DownloadsScreen() {
         </SafeAreaView>
     );
 }
+
+
 
 const styles = StyleSheet.create({
     container: {
