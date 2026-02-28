@@ -1,4 +1,4 @@
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import { openDocumentTree, mkdir, createFile, moveFile, unlink, stat, listFiles, exists } from "@joplin/react-native-saf-x";
 import { unzip, subscribe } from 'react-native-zip-archive';
 import React, { createContext, ReactNode, useContext, useEffect, useState } from 'react';
