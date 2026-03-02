@@ -1,5 +1,4 @@
 import * as SecureStore from 'expo-secure-store';
-import { isVersionAtLeast } from './versionUtils';
 
 
 const DEFAULT_API_URL = 'http://romm:8080';
@@ -203,11 +202,6 @@ class ApiClient {
         this.serverVersion = version;
     }
 
-    // Check if server version is at least the specified version
-    private isServerVersionAtLeast(minVersion: string): boolean {
-        return isVersionAtLeast(this.serverVersion, minVersion);
-    }
-
     private async loadCredentialsFromStorage(): Promise<void> {
         try {
             const [username, password] = await Promise.all([
@@ -389,12 +383,21 @@ class ApiClient {
     }
 
     async getRomsByPlatform(platformId: number, limit: number = 20, offset: number = 0, includeSiblings: boolean = true): Promise<ItemsResponse<Rom>> {
-        // Use platform_ids parameter for server version >= 4.6.0, otherwise use platform_id
-        const platformParam = this.isServerVersionAtLeast('4.6.0') 
-            ? `platform_ids=${platformId}` 
-            : `platform_id=${platformId}`;
-        
-        const res = await this.request<ItemsResponse<Rom>>(`/api/roms?${platformParam}&limit=${limit}&offset=${offset}&group_by_meta_id=1`);
+        // Always request using the newer `platform_ids` query parameter.  Older
+        // servers may ignore it, but new servers will definitely honour it; the
+        // previous version check was causing problems when the client hadn't yet
+        // fetched the server version and defaulted to `platform_id`, which on
+        // modern installations is ignored and returned every ROM instead of just
+        // the desired platform.  Using the plural form matches the web UI and
+        // guarantees the filter is applied.
+        // send both query parameters so that older servers (<4.6.0) which only
+        // understand `platform_id` and newer servers which expect `platform_ids` will
+        // both apply the filter.  This avoids relying on the client knowing the
+        // server version (which may not be fetched yet when the initial call happens)
+        const platformParam = `platform_ids=${platformId}&platform_id=${platformId}`;
+        const url = `/api/roms?${platformParam}&limit=${limit}&offset=${offset}&group_by_meta_id=1`;
+        console.debug('Fetching ROMs by platform, url=', url);
+        const res = await this.request<ItemsResponse<Rom>>(url);
         const roms = res.items;
 
         // Fetch siblings for each ROM
