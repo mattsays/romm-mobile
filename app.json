@@ -2,7 +2,7 @@
   "expo": {
     "name": "RomM",
     "slug": "RomM",
-    "version": "1.0.5.2",
+    "version": "1.0.5.3",
     "icon": "./assets/images/icon.png",
     "scheme": "rommmobile",
     "userInterfaceStyle": "automatic",
@@ -35,7 +35,7 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#e6ffc3",
+          "backgroundColor": "#000000",
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 200
         }
