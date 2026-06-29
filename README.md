@@ -1,3 +1,7 @@
+# This project is no longer maintained.
+
+> **Notice:** RomM Mobile is no longer actively maintained. The repository is kept available for reference only, and issues or pull requests may not be reviewed or merged.
+
 # RomM Mobile
 
 <div align="center">
